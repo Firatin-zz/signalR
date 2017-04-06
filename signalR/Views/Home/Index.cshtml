@@ -1,0 +1,62 @@
+﻿
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>Index</title>
+</head>
+<body>
+    <div>
+        <h1 id="titleName">Hoşgeldin </h1>
+
+
+
+        <input type="text" id="txtMessage" /><br />
+        <button id="btnSend"> Gönder </button>
+        <hr />
+
+
+
+        <ul id="chatList"></ul>
+    </div>
+    <script src="~/Scripts/jquery-1.6.4.js"></script>
+    <script src="~/Scripts/jquery.signalR-2.2.1.js"></script>
+    <script src="/signalr/hubs"></script>@*
+        bu script bizde yok fakat sunucu tarafında runtime zamanında generate eder. Projemde böyle bir sikript yok
+    *@
+</body>
+</html>
+<script>
+    $(document).ready(function () {
+        var name = prompt("Kullanıcı Adı Giriniz");
+        $("#titleName").html("Hoşgeldin " + name);
+
+        //metod ve classları burda camelcase göre cağırıyoruz
+        //Hubımıza bağlanmak için
+        $.connection.hub.start();
+        var chat = $.connection.chatHub;//hubadı camel case göre 
+
+
+
+        //Sunucuya itemları göndermek için --!!scriptin sonuna yazılması gerekbilir.
+        $("#btnSend").click(function () {
+            var message = $("#txtMessage").val();
+            chat.server.sendMessage(name, message);//hub içindeki methodumuz
+        })
+
+
+        //Datamız sunucuya çıktı, sıra clientlere iletmek
+        chat.client.getMessageOther = function (name, message) {
+            $("#chatList").append("<li>" + name + ":" + message + "</li>");//istemcilere adı ve mesajı append et            
+        }
+        chat.client.getMessageCaller = function (message) {
+            $("#chatList").append("<li>" + message + "</li>");//banada sadece mesajı append et
+        }
+
+    });
+</script>
